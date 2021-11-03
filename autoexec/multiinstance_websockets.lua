@@ -1,3 +1,4 @@
+--https://github.com/Burkino/syn-multiinstance-exec
 repeat task.wait() until game:IsLoaded()
 
 local gname = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name -- Where the fuck you are
