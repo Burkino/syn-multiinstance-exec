@@ -5,3 +5,6 @@ Browser &lt;---> Multiple Roblox clients communication through websockets
 2) Install nodejs packages with `npm i`
 3) Start server with npm run start
 4) Open the panel at http://localhost:1350
+
+
+This needs a better design and probably more security
