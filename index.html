@@ -1,0 +1,116 @@
+<html>
+
+<head>
+    <title>Burkino's Multi-piece-of-shit whatever</title>
+    <link type="text/css" rel="stylesheet" href="./style.css">
+    <meta http-equiv="Content-Security-Policy" content="img-src 'none';">
+</head>
+
+<body>
+    <div id="container">
+        <textarea id="scriptbox" spellcheck="false"></textarea>
+
+        <iframe id="outbox"></iframe>
+
+    </div>
+    <div id="controls">
+        <button id="run">Run</button>
+        <select id="select">
+            <option value="all">All clients</option>
+        </select>
+        <button id="clear">Clear</button>
+    </div>
+
+    <script>
+        var scriptbox = document.getElementById('scriptbox');
+        var outbox = document.getElementById('outbox').contentDocument;
+        var run = document.getElementById('run');
+        var select = document.getElementById('select');
+        var clear = document.getElementById('clear');
+
+        var cssLink = document.createElement("link");
+        cssLink.href = "./style.css"; 
+        cssLink.rel = "stylesheet"; 
+        cssLink.type = "text/css"; 
+        outbox.head.appendChild(cssLink);
+
+        var timeout;
+        function connect() {
+            var socket = new WebSocket(`ws://${window.location.host}`);
+            socket.onmessage = function (data) {
+                data = JSON.parse(data.data);
+                switch (data.type) {
+                    case 'updatelog':
+                        var date = new Date();
+                        var elem = outbox.createElement('div');
+                        elem.className = "text";
+
+                        var time = outbox.createElement('div');
+                        time.style = "padding-right: 2px;white-space: nowrap;";
+                        time.textContent = `[${date.toLocaleTimeString()}]`;
+                        elem.appendChild(time);
+
+                        var sender = outbox.createElement('div');
+                        sender.style = "padding-right: 2px;white-space: nowrap;";
+                        sender.textContent = `[${data.sender}]`;
+                        elem.appendChild(sender);
+
+                        var msg = outbox.createElement('div');
+                        msg.textContent = `${data.message}`;
+                        elem.appendChild(msg);
+                        
+                        outbox.body.appendChild(elem);
+                        
+                        var br = outbox.createElement('br');
+                        outbox.body.appendChild(br);
+                        break;
+                    case 'addclient':
+                        var opt = document.createElement('option');
+                        opt.value = data.sender;
+                        opt.innerHTML = `${data.sender} [${data.game}]`;
+                        select.appendChild(opt);
+                        break;
+                    case 'removeclient':
+                        for (var i = 0; i < select.options.length; i++) {
+                            if (select.options[i].value == data.sender) {
+                                select.remove(i);
+                                break;
+                            }
+                        }
+                        break;
+                }
+            };
+
+            socket.onopen = function () {
+                clearTimeout(timeout);
+                socket.send(JSON.stringify({ type: 'init', sender: "MASTER" }));
+            };
+
+            socket.onclose = function () {
+                connect()
+            };
+        }
+
+        connect();
+
+        clear.addEventListener('click', function () {
+            outbox.body.innerHTML = '';
+        });
+
+        run.addEventListener('click', function () {
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    script: scriptbox.value,
+                    receiver: select.value
+                })
+            })
+        })
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,42 @@
+:root {
+    --box-width: 49.5%;
+    --box-height: 90%;
+}
+
+textarea {
+    height: var(--box-height);
+    resize: none;
+    display: inline-block;
+    width: var(--box-width);
+}
+
+#container {
+    display: flow-root;
+}
+
+#scriptbox {
+    float: left;
+}
+
+#outbox {
+    height: var(--box-height);
+    width: var(--box-width);
+    float: right;
+    border-style: solid;
+    border-width: 0.5px;
+    overflow-y: scroll;
+    overflow-wrap: anywhere;
+}
+
+#controls {
+    padding-top: 5px;
+}
+
+#clear {
+    float: right;
+}
+
+.text {
+    display: inline-flex;
+    margin: 0.5%;
+}
