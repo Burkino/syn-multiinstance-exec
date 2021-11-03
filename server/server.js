@@ -1,4 +1,3 @@
-// https://github.com/Burkino/syn-multiinstance-exec
 const express = require("express");
 const app = express();
 const server = require('http').Server(app);
@@ -10,7 +9,7 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.static(__dirname));
 
 server.listen(1350, () => {
-  console.log("Port 1350");
+  console.log("Open the panel at http://localhost:1350");
 });
 
 app.get("/", (req, res) => {
