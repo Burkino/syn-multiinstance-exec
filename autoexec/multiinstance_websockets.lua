@@ -1,37 +1,45 @@
---https://github.com/Burkino/syn-multiinstance-exec
-repeat task.wait() until game:IsLoaded()
+-- https://github.com/Burkino/syn-multiinstance-exec
 
-local gname = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name -- Where the fuck you are
-local pname = game:GetService("Players").LocalPlayer.Name -- Who the fuck you are
-local http = game:GetService("HttpService") -- Only useful for jsonencode
+--// Wait Until Game is Loaded
 
--- Connect
+if not game:IsLoaded() then -- If game isn't already loaded
+    game.Loaded:Wait() -- Wait until game is loaded
+end
 
-local WebSocket = syn.websocket.connect("ws://localhost:1350")
--- Execute any shit sent to you
-local blank = ""
-WebSocket.OnMessage:Connect(function(msg)
-    if msg == "BEGIN SCRIPT" then   -- Websockets can send a max of 64kB
-        blank = "";
-    elseif msg == "END SCRIPT" then -- So split that shit up
-        setclipboard(blank)
-        loadstring(blank)()         -- And then run that shit
+--// Init Variables 
+
+local PlaceName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name -- Name of current place
+local PlayerName = game:GetService("Players").LocalPlayer.Name -- Local player username
+local HttpService = game:GetService("HttpService") -- Service used for JSON encoding in the script
+
+--// Setup Websocket
+
+local WebSocket = syn.websocket.connect("ws://localhost:1350") -- Connect to websocket
+local WebSocketScript = "" -- Create a placeholder string
+
+WebSocket.OnMessage:Connect(function(Message) -- Create a connection to the event fired when a message is sent to the websocket
+    if Message == "BEGIN SCRIPT" then
+        WebSocketScript = "" -- Reset placeholder string to be empty
+    elseif Message == "END SCRIPT" then
+        loadstring(WebSocketScript)() -- Execute websocket script
     else
-        blank ..= msg          -- Add the shit together
+        WebSocketScript = WebSocketScript .. Message -- Concat placeholder string to add script content
     end
 end)
 
--- Tell server who and where you are
-WebSocket:Send(http:JSONEncode({
+--// Send Init Data to Server With Player Info
+
+WebSocket:Send(HttpService:JSONEncode({
     type = "init",
-    sender = pname,
-    game = gname
+    sender = PlayerName,
+    game = PlaceName
 }))
 
--- This is probably the wrong code but fuck you
-game:GetService("LogService").MessageOut:Connect(function(msg)
-    WebSocket:Send(http:JSONEncode({
+--// Send a Log to the Websocket When Something is Outputted to the Console
+
+game:GetService("LogService").MessageOut:Connect(function(Message)
+    WebSocket:Send(HttpService:JSONEncode({
         type = "log",
-        message = msg
+        message = Message
     }))
 end)
